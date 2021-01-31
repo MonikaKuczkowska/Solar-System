@@ -12,10 +12,15 @@
 
 #include "Box.cpp"
 
+#define SIZE 1
+
 GLuint program;
 GLuint programSun;
 GLuint programTex;
 GLuint programTexSun;
+GLuint programSkybox;
+
+GLuint CubemapTexture;
 
 GLuint textureShip;
 GLuint textureEarth;
@@ -52,6 +57,53 @@ glm::vec3 cameraDir;
 glm::vec3 lightPos = glm::vec3(0, 0, 0);
 
 glm::mat4 cameraMatrix, perspectiveMatrix;
+
+float cubemapVertices[] = {       
+	-SIZE,  SIZE, -SIZE,
+	-SIZE, -SIZE, -SIZE,
+	SIZE, -SIZE, -SIZE,
+	SIZE, -SIZE, -SIZE,
+	SIZE,  SIZE, -SIZE,
+	-SIZE,  SIZE, -SIZE,
+
+	-SIZE, -SIZE,  SIZE,
+	-SIZE, -SIZE, -SIZE,
+	-SIZE,  SIZE, -SIZE,
+	-SIZE,  SIZE, -SIZE,
+	-SIZE,  SIZE,  SIZE,
+	-SIZE, -SIZE,  SIZE,
+
+	SIZE, -SIZE, -SIZE,
+	SIZE, -SIZE,  SIZE,
+	SIZE,  SIZE,  SIZE,
+	SIZE,  SIZE,  SIZE,
+	SIZE,  SIZE, -SIZE,
+	SIZE, -SIZE, -SIZE,
+
+	-SIZE, -SIZE,  SIZE,
+	-SIZE,  SIZE,  SIZE,
+	SIZE,  SIZE,  SIZE,
+	SIZE,  SIZE,  SIZE,
+	SIZE, -SIZE,  SIZE,
+	-SIZE, -SIZE,  SIZE,
+
+	-SIZE,  SIZE, -SIZE,
+	SIZE,  SIZE, -SIZE,
+	SIZE,  SIZE,  SIZE,
+	SIZE,  SIZE,  SIZE,
+	-SIZE,  SIZE,  SIZE,
+	-SIZE,  SIZE, -SIZE,
+
+	-SIZE, -SIZE, -SIZE,
+	-SIZE, -SIZE,  SIZE,
+	SIZE, -SIZE, -SIZE,
+	SIZE, -SIZE, -SIZE,
+	-SIZE, -SIZE,  SIZE,
+	SIZE, -SIZE,  SIZE
+};
+
+GLuint SkyboxVertexBuffer;
+GLuint SkyboxVertexAttributes;
 
 void keyboard(unsigned char key, int x, int y)
 {
@@ -180,6 +232,24 @@ void renderShip()
 	drawObjectTexture(programTex, &shipModel, shipModelMatrix, textureShip, textureShipN);
 }
 
+void renderSkybox()
+{
+	glUseProgram(programSkybox);
+	glm::mat4 view = glm::mat4(glm::mat3(cameraMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(programSkybox, "view"), 1, GL_FALSE, (float*)&view);
+	glUniformMatrix4fv(glGetUniformLocation(programSkybox, "perspective"), 1, GL_FALSE, (float*)&perspectiveMatrix);
+
+	glDepthFunc(GL_LEQUAL);
+	glBindVertexArray(SkyboxVertexAttributes);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, CubemapTexture);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	//glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
+}
+
 void renderScene()
 {
 	// Aktualizacja macierzy widoku i rzutowania. Macierze sa przechowywane w zmiennych globalnych, bo uzywa ich funkcja drawObject.
@@ -194,6 +264,7 @@ void renderScene()
 	renderShip();
 	renderPlanets();
 	renderSun();
+	renderSkybox();
 
 	glUseProgram(0);
 	glutSwapBuffers();
@@ -206,6 +277,8 @@ void init()
 	programSun = shaderLoader.CreateProgram("shaders/shader_4_2.vert", "shaders/shader_4_2.frag");
 	programTex = shaderLoader.CreateProgram("shaders/shader_4_tex.vert", "shaders/shader_4_tex.frag");
 	programTexSun = shaderLoader.CreateProgram("shaders/shader_sun_tex.vert", "shaders/shader_sun_tex.frag");
+	programSkybox = shaderLoader.CreateProgram("shaders/shader_skybox.vert", "shaders/shader_skybox.frag");
+
 	sphereModel = obj::loadModelFromFile("models/sphere.obj");
 	shipModel = obj::loadModelFromFile("models/spaceship.obj");
 
@@ -232,6 +305,27 @@ void init()
 	textureSaturnN = Core::LoadTexture("textures/saturn_normals.png");
 	textureUranusN = Core::LoadTexture("textures/uranus_normals.png");
 	textureNeptuneN = Core::LoadTexture("textures/neptune_normals.png");
+
+	std::vector<std::string> faces
+	{
+		"textures/right.png",
+		"textures/left.png",
+		"textures/top.png",
+		"textures/bottom.png",
+		"textures/back.png",
+		"textures/front.png"
+	};
+	CubemapTexture = Core::LoadCubemap(faces);
+
+	glGenBuffers(1, &SkyboxVertexBuffer);
+	glGenVertexArrays(1, &SkyboxVertexAttributes);
+	glBindVertexArray(SkyboxVertexAttributes);
+	glBindBuffer(GL_ARRAY_BUFFER, SkyboxVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubemapVertices), cubemapVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void shutdown()
@@ -250,7 +344,7 @@ int main(int argc, char ** argv)
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(200, 200);
 	glutInitWindowSize(600, 600);
-	glutCreateWindow("OpenGL Pierwszy Program");
+	glutCreateWindow("Solar System");
 	glewInit();
 
 	init();
