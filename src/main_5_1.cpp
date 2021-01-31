@@ -15,6 +15,8 @@
 GLuint program;
 GLuint programSun;
 GLuint programTex;
+GLuint programTexSun;
+
 
 GLuint texture;
 GLuint textureMoon;
@@ -100,6 +102,9 @@ void renderPlanets()
 
 	glUseProgram(programTex);
 
+	glUniform3f(glGetUniformLocation(programSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
 	glm::mat4 sun = glm::translate(glm::vec3(0, 0, 0));
 	glm::vec3 axis = glm::vec3(0, 1, 0);
 
@@ -140,6 +145,19 @@ void renderPlanets()
 	drawObjectTexture(programTex, sphereContext, neptuneModelMatrix, textureNeptune);
 }
 
+void renderSun()
+{
+	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.f;
+
+	glUseProgram(programTexSun);
+
+	glUniform3f(glGetUniformLocation(programSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glm::mat4 sunModelMatrix = glm::translate(lightPos) * glm::scale(glm::vec3(4.0f)) * glm::rotate(glm::radians(time * 2.0f), glm::vec3(0, 1, 0));
+	drawObjectTexture(programTexSun, sphereContext, sunModelMatrix, textureSun);
+}
+
 void renderScene()
 {
 	// Aktualizacja macierzy widoku i rzutowania. Macierze sa przechowywane w zmiennych globalnych, bo uzywa ich funkcja drawObject.
@@ -156,18 +174,14 @@ void renderScene()
 
 	// Macierz statku "przyczepia" go do kamery. Warto przeanalizowac te linijke i zrozumiec jak to dziala.
 	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.25f));
-	//glUniform3f(glGetUniformLocation(program, "light_dir"), 1, 1, 0);
+
 	glUniform3f(glGetUniformLocation(program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	glUniform3f(glGetUniformLocation(program, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	drawObject(program, shipContext, shipModelMatrix, glm::vec3(0.6f));
 
 	renderPlanets();
-
-	glUseProgram(programSun);
-	glUniform3f(glGetUniformLocation(programSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(programSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
-	drawObject(programSun, sphereContext, glm::translate(lightPos) *  glm::scale(glm::vec3(4.0f)), glm::vec3(1.0f, 0.8f, 0.2f));
+	renderSun();
 
 	glUseProgram(0);
 	glutSwapBuffers();
@@ -179,11 +193,13 @@ void init()
 	program = shaderLoader.CreateProgram("shaders/shader_4_1.vert", "shaders/shader_4_1.frag");
 	programSun = shaderLoader.CreateProgram("shaders/shader_4_2.vert", "shaders/shader_4_2.frag");
 	programTex = shaderLoader.CreateProgram("shaders/shader_4_tex.vert", "shaders/shader_4_tex.frag");
+	programTexSun = shaderLoader.CreateProgram("shaders/shader_sun_tex.vert", "shaders/shader_sun_tex.frag");
 	sphereModel = obj::loadModelFromFile("models/sphere.obj");
 	shipModel = obj::loadModelFromFile("models/spaceship.obj");
 
 	texture = Core::LoadTexture("textures/earth2.png");
 	textureMoon = Core::LoadTexture("textures/moon.png");
+	textureSun = Core::LoadTexture("textures/sun.png");
 
 	textureMercury = Core::LoadTexture("textures/mercury.png");
 	textureVenus = Core::LoadTexture("textures/venus.png");
