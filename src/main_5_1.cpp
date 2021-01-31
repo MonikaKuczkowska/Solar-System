@@ -17,8 +17,8 @@ GLuint programSun;
 GLuint programTex;
 GLuint programTexSun;
 
-
-GLuint texture;
+GLuint textureShip;
+GLuint textureEarth;
 GLuint textureMoon;
 GLuint textureSun;
 GLuint textureMercury;
@@ -29,17 +29,25 @@ GLuint textureSaturn;
 GLuint textureUranus;
 GLuint textureNeptune;
 
+GLuint textureShipN;
+GLuint textureEarthN;
+GLuint textureMoonN;
+GLuint textureSunN;
+GLuint textureMercuryN;
+GLuint textureVenusN;
+GLuint textureMarsN;
+GLuint textureJupiterN;
+GLuint textureSaturnN;
+GLuint textureUranusN;
+GLuint textureNeptuneN;
 
 Core::Shader_Loader shaderLoader;
 
 obj::Model shipModel;
 obj::Model sphereModel;
-Core::RenderContext shipContext;
-Core::RenderContext sphereContext;
-
 
 float cameraAngle = 0;
-glm::vec3 cameraPos = glm::vec3(-5, 0, 0);
+glm::vec3 cameraPos = glm::vec3(-25, 0, 0);
 glm::vec3 cameraDir;
 glm::vec3 lightPos = glm::vec3(0, 0, 0);
 
@@ -71,7 +79,7 @@ glm::mat4 createCameraMatrix()
 	return Core::createViewMatrix(cameraPos, cameraDir, up);
 }
 
-void drawObject(GLuint program, Core::RenderContext context, glm::mat4 modelMatrix, glm::vec3 color)
+void drawObject(GLuint program, obj::Model * model, glm::mat4 modelMatrix, glm::vec3 color)
 {
 	glUniform3f(glGetUniformLocation(program, "objectColor"), color.x, color.y, color.z);
 
@@ -79,10 +87,10 @@ void drawObject(GLuint program, Core::RenderContext context, glm::mat4 modelMatr
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
 
-	Core::DrawContext(context);
+	Core::DrawModel(model);
 }
 
-void drawObjectTexture(GLuint program, Core::RenderContext context, glm::mat4 modelMatrix, GLuint texture)
+void drawObjectTexture(GLuint program, obj::Model * model, glm::mat4 modelMatrix, GLuint texture, GLuint normalmapId)
 {
 	glUniform3f(glGetUniformLocation(program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	glUniform3f(glGetUniformLocation(program, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
@@ -92,8 +100,9 @@ void drawObjectTexture(GLuint program, Core::RenderContext context, glm::mat4 mo
 	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
 
 	Core::SetActiveTexture(texture, "colorTexture", program, 0);
+	Core::SetActiveTexture(normalmapId, "normalSampler", program, 1);
 
-	Core::DrawContext(context);
+	Core::DrawModel(model);
 }
 
 void renderPlanets()
@@ -102,8 +111,8 @@ void renderPlanets()
 
 	glUseProgram(programTex);
 
-	glUniform3f(glGetUniformLocation(programSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(programSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	glm::mat4 sun = glm::translate(glm::vec3(0, 0, 0));
 	glm::vec3 axis = glm::vec3(0, 1, 0);
@@ -111,38 +120,38 @@ void renderPlanets()
 	//Merkury
 	glm::mat4 mercuryModelMatrix = sun * glm::rotate(glm::radians(time * 47.9f), axis) * glm::translate(glm::vec3(6, 0, 0)) * glm::scale(glm::vec3(0.2f))
 		* glm::rotate(glm::radians(time * 1.0f), axis);
-	drawObjectTexture(programTex, sphereContext, mercuryModelMatrix, textureMercury);
+	drawObjectTexture(programTex, &sphereModel, mercuryModelMatrix, textureMercury, textureMercuryN);
 	//Venus
 	glm::mat4 venusModelMatrix = sun * glm::rotate(glm::radians(time * 35.0f), axis) * glm::translate(glm::vec3(10, 0, 0)) * glm::scale(glm::vec3(0.6f))
 		* glm::rotate(glm::radians(time * 0.6f), axis);
-	drawObjectTexture(programTex, sphereContext, venusModelMatrix, textureVenus);
+	drawObjectTexture(programTex, &sphereModel, venusModelMatrix, textureVenus, textureVenusN);
 	//Ziemia
 	glm::mat4 earthModelMatrix = sun * glm::rotate(glm::radians(time * 29.8f), axis) * glm::translate(glm::vec3(15, 0, 0)) * glm::scale(glm::vec3(0.6f))
 		* glm::rotate(glm::radians(time * 167.4f), axis);
-	drawObjectTexture(programTex, sphereContext, earthModelMatrix, texture);
+	drawObjectTexture(programTex, &sphereModel, earthModelMatrix, textureEarth, textureEarthN);
 	//Ksiê¿yc
 	glm::mat4 moonModelMatrix = earthModelMatrix * glm::rotate(glm::radians(time * 1.0f), axis) * glm::translate(glm::vec3(2, 0, 0)) * glm::scale(glm::vec3(0.2f));
-	drawObjectTexture(programTex, sphereContext, moonModelMatrix, textureMoon);
+	drawObjectTexture(programTex, &sphereModel, moonModelMatrix, textureMoon, textureMoonN);
 	//Mars
 	glm::mat4 marsModelMatrix = sun * glm::rotate(glm::radians(time * 24.1f), axis) * glm::translate(glm::vec3(20, 0, 0)) * glm::scale(glm::vec3(0.3f))
 		* glm::rotate(glm::radians(time * 86.6f), axis);
-	drawObjectTexture(programTex, sphereContext, marsModelMatrix, textureMars);
+	drawObjectTexture(programTex, &sphereModel, marsModelMatrix, textureMars, textureMarsN);
 	//Jowisz
 	glm::mat4 jupiterhModelMatrix = sun * glm::rotate(glm::radians(time * 13.1f), axis) * glm::translate(glm::vec3(30, 0, 0)) * glm::scale(glm::vec3(3.5f))
 		* glm::rotate(glm::radians(time * 455.8f), axis);
-	drawObjectTexture(programTex, sphereContext, jupiterhModelMatrix, textureJupiter);
+	drawObjectTexture(programTex, &sphereModel, jupiterhModelMatrix, textureJupiter, textureJupiterN);
 	//Saturn
 	glm::mat4 saturnModelMatrix = sun * glm::rotate(glm::radians(time * 9.7f), axis) * glm::translate(glm::vec3(40, 0, 0)) * glm::scale(glm::vec3(3.0f))
 		* glm::rotate(glm::radians(time * 368.4f), axis);
-	drawObjectTexture(programTex, sphereContext, saturnModelMatrix, textureSaturn);
+	drawObjectTexture(programTex, &sphereModel, saturnModelMatrix, textureSaturn, textureSaturnN);
 	//Uran
 	glm::mat4 uranusModelMatrix = sun * glm::rotate(glm::radians(time * 6.8f), axis) * glm::translate(glm::vec3(50, 0, 0)) * glm::scale(glm::vec3(1.5f))
 		* glm::rotate(glm::radians(time * 147.9f), axis);
-	drawObjectTexture(programTex, sphereContext, uranusModelMatrix, textureUranus);
+	drawObjectTexture(programTex, &sphereModel, uranusModelMatrix, textureUranus, textureUranusN);
 	//Neptun
 	glm::mat4 neptuneModelMatrix = sun * glm::rotate(glm::radians(time * 5.4f), axis) * glm::translate(glm::vec3(70, 0, 0)) * glm::scale(glm::vec3(1.0f))
 		* glm::rotate(glm::radians(time * 97.1f), axis);
-	drawObjectTexture(programTex, sphereContext, neptuneModelMatrix, textureNeptune);
+	drawObjectTexture(programTex, &sphereModel, neptuneModelMatrix, textureNeptune, textureNeptuneN);
 }
 
 void renderSun()
@@ -151,11 +160,24 @@ void renderSun()
 
 	glUseProgram(programTexSun);
 
-	glUniform3f(glGetUniformLocation(programSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(programSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+	glUniform3f(glGetUniformLocation(programTexSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTexSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	glm::mat4 sunModelMatrix = glm::translate(lightPos) * glm::scale(glm::vec3(4.0f)) * glm::rotate(glm::radians(time * 2.0f), glm::vec3(0, 1, 0));
-	drawObjectTexture(programTexSun, sphereContext, sunModelMatrix, textureSun);
+	drawObjectTexture(programTexSun, &sphereModel, sunModelMatrix, textureSun, textureSunN);
+}
+
+void renderShip()
+{
+	glUseProgram(programTex);
+
+	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0, -0.25f, 0)) * 
+		glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0, 1, 0)) * 
+		glm::scale(glm::vec3(0.25f));
+	drawObjectTexture(programTex, &shipModel, shipModelMatrix, textureShip, textureShipN);
 }
 
 void renderScene()
@@ -165,21 +187,11 @@ void renderScene()
 	//  Jest to mozliwe dzieki temu, ze macierze widoku i rzutowania sa takie same dla wszystkich obiektow!)
 	cameraMatrix = createCameraMatrix();
 	perspectiveMatrix = Core::createPerspectiveMatrix();
-	float time = glutGet(GLUT_ELAPSED_TIME)/1000.f;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glUseProgram(program);
-
-	// Macierz statku "przyczepia" go do kamery. Warto przeanalizowac te linijke i zrozumiec jak to dziala.
-	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.25f));
-
-	glUniform3f(glGetUniformLocation(program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(program, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
-
-	drawObject(program, shipContext, shipModelMatrix, glm::vec3(0.6f));
-
+	renderShip();
 	renderPlanets();
 	renderSun();
 
@@ -197,10 +209,10 @@ void init()
 	sphereModel = obj::loadModelFromFile("models/sphere.obj");
 	shipModel = obj::loadModelFromFile("models/spaceship.obj");
 
-	texture = Core::LoadTexture("textures/earth2.png");
+	textureShip = Core::LoadTexture("textures/spaceship.png");
+	textureEarth = Core::LoadTexture("textures/earth2.png");
 	textureMoon = Core::LoadTexture("textures/moon.png");
 	textureSun = Core::LoadTexture("textures/sun.png");
-
 	textureMercury = Core::LoadTexture("textures/mercury.png");
 	textureVenus = Core::LoadTexture("textures/venus.png");
 	textureMars = Core::LoadTexture("textures/mars.png");
@@ -209,9 +221,17 @@ void init()
 	textureUranus = Core::LoadTexture("textures/uranus.png");
 	textureNeptune = Core::LoadTexture("textures/neptune.png");
 
-
-	shipContext.initFromOBJ(shipModel);
-	sphereContext.initFromOBJ(sphereModel);
+	textureShipN = Core::LoadTexture("textures/spaceship_normals.png");
+	textureEarthN = Core::LoadTexture("textures/earth2_normals.png");
+	textureMoonN = Core::LoadTexture("textures/moon_normals.png");
+	textureSunN = Core::LoadTexture("textures/sun_normals.png");
+	textureMercuryN = Core::LoadTexture("textures/mercury_normals.png");
+	textureVenusN = Core::LoadTexture("textures/venus_normals.png");
+	textureMarsN = Core::LoadTexture("textures/mars_normals.png");
+	textureJupiterN = Core::LoadTexture("textures/jupiter_normals.png");
+	textureSaturnN = Core::LoadTexture("textures/saturn_normals.png");
+	textureUranusN = Core::LoadTexture("textures/uranus_normals.png");
+	textureNeptuneN = Core::LoadTexture("textures/neptune_normals.png");
 }
 
 void shutdown()
