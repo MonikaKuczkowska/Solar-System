@@ -1,36 +1,22 @@
 #pragma once
-#include "glm.hpp"
-#include "glew.h"
-#include "objload.h"
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#include "objload.h"
 
 namespace Core
 {
-	struct RenderContext
-    {
-		GLuint vertexArray;
-		GLuint vertexBuffer;
-		GLuint vertexIndexBuffer;
-		int size = 0;
-
-        void initFromOBJ(obj::Model& model);
-	};
-
-
 	// vertexArray - jednowymiarowa tablica zawierajaca wartosci opisujace pozycje kolejnych wierzcholkow w jednym ciagu (x1, y1, z1, w1, x2, y2, z2, w2, ...)
 	// numVertices - liczba wierzcholkow do narysowania
 	// elementSize - liczba wartosci opisujacych pojedynczy wierzcholek (np. 3 gdy wierzcholek opisany jest trojka (x, y, z))
-	void DrawVertexArray(const float * vertexArray, int numVertices, int elementSize);
+	void DrawVertexArray(const float* vertexArray, int numVertices, int elementSize);
 
 	// indexArray - jednowymiarowa tablica zawierajaca indeksy wierzcholkow kolejnych trojkatow w jednym ciagu (t1_i1, t1_i2, t1_i3, t2_i1, t2_i2, t2_i3, ...)
 	// numIndexes - liczba indeksow w tablicy indexArray
-	void DrawVertexArrayIndexed(const float * vertexArray, const int * indexArray, int numIndexes, int elementSize);
+	void DrawVertexArrayIndexed(const float* vertexArray, const int* indexArray, int numIndexes, int elementSize);
 
 
 	struct VertexAttribute
 	{
-		const void * Pointer;
+		const void* Pointer;
 		int Size;
 	};
 
@@ -47,13 +33,13 @@ namespace Core
 	// 
 	// Przykladowe wywolanie funkcji - narysowanie trojkata jak na pierwszych zajeciach:
 	/*
-	
+
 	const float vertices[] = {
 		0.25f,  0.25f, 0.0f, 1.0f,
 		0.25f, -0.25f, 0.0f, 1.0f,
 		-0.25f, -0.25f, 0.0f, 1.0f
 	};
-	
+
 	Core::VertexData vertexData;
 	vertexData.NumActiveAttribs = 1;			// Liczba uzywanych atrybutow wierzcholka
 	vertexData.Attribs[0].Pointer = vertices;	// Wskaznik na dane zerowego atrybutu
@@ -62,7 +48,7 @@ namespace Core
 	Core::DrawVertexArray(vertexData);
 
 	*/
-	void DrawVertexArray(const VertexData & data);
+	void DrawVertexArray(const VertexData& data);
 
-	void DrawContext(RenderContext& context);
+	void DrawModel(obj::Model* model);
 }
