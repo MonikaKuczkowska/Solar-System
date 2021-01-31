@@ -41,17 +41,15 @@ GLuint textureSaturnN;
 GLuint textureUranusN;
 GLuint textureNeptuneN;
 
-
 Core::Shader_Loader shaderLoader;
 
 obj::Model shipModel;
 obj::Model sphereModel;
 
-
 float cameraAngle = 0;
-glm::vec3 cameraPos = glm::vec3(-5, 0, 0);
+glm::vec3 cameraPos = glm::vec3(-25, 0, 0);
 glm::vec3 cameraDir;
-glm::vec3 lightPos = glm::vec3(1, 0, 0);
+glm::vec3 lightPos = glm::vec3(0, 0, 0);
 
 glm::mat4 cameraMatrix, perspectiveMatrix;
 
@@ -113,8 +111,8 @@ void renderPlanets()
 
 	glUseProgram(programTex);
 
-	glUniform3f(glGetUniformLocation(programSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(programSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	glm::mat4 sun = glm::translate(glm::vec3(0, 0, 0));
 	glm::vec3 axis = glm::vec3(0, 1, 0);
@@ -162,11 +160,24 @@ void renderSun()
 
 	glUseProgram(programTexSun);
 
-	glUniform3f(glGetUniformLocation(programSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(programSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+	glUniform3f(glGetUniformLocation(programTexSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTexSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	glm::mat4 sunModelMatrix = glm::translate(lightPos) * glm::scale(glm::vec3(4.0f)) * glm::rotate(glm::radians(time * 2.0f), glm::vec3(0, 1, 0));
 	drawObjectTexture(programTexSun, &sphereModel, sunModelMatrix, textureSun, textureSunN);
+}
+
+void renderShip()
+{
+	glUseProgram(programTex);
+
+	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0, -0.25f, 0)) * 
+		glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0, 1, 0)) * 
+		glm::scale(glm::vec3(0.25f));
+	drawObjectTexture(programTex, &shipModel, shipModelMatrix, textureShip, textureShipN);
 }
 
 void renderScene()
@@ -176,21 +187,11 @@ void renderScene()
 	//  Jest to mozliwe dzieki temu, ze macierze widoku i rzutowania sa takie same dla wszystkich obiektow!)
 	cameraMatrix = createCameraMatrix();
 	perspectiveMatrix = Core::createPerspectiveMatrix();
-	float time = glutGet(GLUT_ELAPSED_TIME)/1000.f;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glUseProgram(programTex);
-
-	// Macierz statku "przyczepia" go do kamery. Warto przeanalizowac te linijke i zrozumiec jak to dziala.
-	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.25f));
-
-	glUniform3f(glGetUniformLocation(program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(program, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
-
-	drawObjectTexture(programTex, &shipModel, shipModelMatrix, textureShip, textureShipN);
-
+	renderShip();
 	renderPlanets();
 	renderSun();
 

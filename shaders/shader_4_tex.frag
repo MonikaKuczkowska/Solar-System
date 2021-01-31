@@ -9,7 +9,7 @@ in vec3 viewDirTS;
 
 void main()
 {
-	vec3 L = -normalize(lightDirTS);
+	vec3 L = normalize(lightDirTS);
 	vec3 V = normalize(viewDirTS);
 	vec3 N = normalize((texture2D(normalSampler, interpTexCoord).rgb * 2 - 1));
 	vec3 R = reflect(-normalize(L), N);

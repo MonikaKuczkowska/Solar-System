@@ -28,7 +28,10 @@ void main()
 
 	vec3 viewDir = normalize(cameraPos - vertPos);
 
-	lightDirTS = TBN * lightPos;
+	vec3 fragPos = (modelMatrix * vec4(vertexPosition,1)).xyz;
+	vec3 lightDir = normalize(lightPos - fragPos);
+
+	lightDirTS = TBN * lightDir;
 	viewDirTS = TBN * viewDir;
 
 	interpTexCoord = vertexTexCoord;
