@@ -35,4 +35,5 @@ void main()
 	viewDirTS = TBN * viewDir;
 
 	interpTexCoord = vertexTexCoord;
+	interpTexCoord[1] = -interpTexCoord[1];
 }
