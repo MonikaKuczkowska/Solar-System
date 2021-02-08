@@ -51,6 +51,7 @@ Core::Shader_Loader shaderLoader;
 obj::Model shipModel;
 obj::Model sphereModel;
 
+float frustumScale;
 float cameraAngle = 0;
 glm::vec3 cameraPos = glm::vec3(-25, 0, 0);
 glm::vec3 cameraDir;
@@ -190,7 +191,7 @@ void renderPlanets()
 	drawObjectTexture(programTex, &sphereModel, marsModelMatrix, textureMars, textureMarsN);
 	//Jowisz
 	glm::mat4 jupiterhModelMatrix = sun * glm::rotate(glm::radians(time * 13.1f), axis) * glm::translate(glm::vec3(30, 0, 0)) * glm::scale(glm::vec3(3.5f))
-		* glm::rotate(glm::radians(time * 455.8f), axis);
+		* glm::rotate(glm::radians(time * 455.8f / 4), axis);
 	drawObjectTexture(programTex, &sphereModel, jupiterhModelMatrix, textureJupiter, textureJupiterN);
 	//Saturn
 	glm::mat4 saturnModelMatrix = sun * glm::rotate(glm::radians(time * 9.7f), axis) * glm::translate(glm::vec3(40, 0, 0)) * glm::scale(glm::vec3(3.0f))
@@ -256,7 +257,7 @@ void renderScene()
 	// (Bardziej elegancko byloby przekazac je jako argumenty do funkcji, ale robimy tak dla uproszczenia kodu.
 	//  Jest to mozliwe dzieki temu, ze macierze widoku i rzutowania sa takie same dla wszystkich obiektow!)
 	cameraMatrix = createCameraMatrix();
-	perspectiveMatrix = Core::createPerspectiveMatrix();
+	perspectiveMatrix = Core::createPerspectiveMatrix(0.1f, 100.f, frustumScale);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -338,6 +339,13 @@ void idle()
 	glutPostRedisplay();
 }
 
+void onReshape(int width, int height)
+{
+	frustumScale = (float)width / height;
+
+	glViewport(0, 0, width, height);
+}
+
 int main(int argc, char ** argv)
 {
 	glutInit(&argc, argv);
@@ -351,6 +359,7 @@ int main(int argc, char ** argv)
 	glutKeyboardFunc(keyboard);
 	glutDisplayFunc(renderScene);
 	glutIdleFunc(idle);
+	glutReshapeFunc(onReshape);
 
 	glutMainLoop();
 
