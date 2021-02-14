@@ -60,12 +60,13 @@ glm::vec3 lightPos = glm::vec3(0, 0, 0);
 
 glm::mat4 cameraMatrix, perspectiveMatrix;
 
-float lastX = 0;
-float lastY = 0;
-float xoffset;
-float yoffset;
+float lastX = -1;
+float lastY = -1;
+float xoffset, yoffset;
 bool firstMouse = true;
 glm::quat rotation = glm::quat(1, 0, 0, 0);
+glm::quat rotX = glm::normalize(glm::angleAxis(307 * 0.03f, glm::vec3(0, 1, 0)));
+glm::quat rotY = glm::normalize(glm::angleAxis(209 * 0.03f, glm::vec3(1, 0, 0)));
 
 float cubemapVertices[] = {       
 	-SIZE,  SIZE, -SIZE,
@@ -131,7 +132,7 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 void mouse(int x, int y)
-{
+{ 
 	if (firstMouse)
 	{
 		lastX = x;
@@ -140,14 +141,16 @@ void mouse(int x, int y)
 	}
 
 	xoffset = x - lastX;
-	yoffset = lastY - y;
+	yoffset = y - lastY;
 	lastX = x;
 	lastY = y;
 
-	float sens = 0.01f;
+	float sens = 0.03f;
 	xoffset *= sens;
 	yoffset *= sens;
 
+
+	/*
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
 
@@ -155,24 +158,29 @@ void mouse(int x, int y)
 		lastX = width / 2;
 		lastY = height / 2;
 		glutWarpPointer(lastX, lastY);
-	}
+	} 
+	*/
 }
 
 glm::mat4 createCameraMatrix()
 {
 	glm::quat quatX = glm::angleAxis(xoffset, glm::vec3(0, 1, 0));
-	glm::quat quatY = glm::angleAxis(yoffset, glm::vec3(-1, 0, 0));
-	glm::quat quatXY = quatX * quatY;
-	quatXY = glm::normalize(quatXY);
+	glm::quat quatY = glm::angleAxis(yoffset, glm::vec3(1, 0, 0));
+
 	xoffset = 0;
 	yoffset = 0;
 
-	rotation = glm::normalize(quatXY * rotation);
+	rotX = glm::normalize(quatX * rotX);
+	rotY = glm::normalize(quatY * rotY);
 
+	rotation = glm::normalize(rotY * rotX);
 	cameraDir = glm::inverse(rotation) * glm::vec3(0, 0, -1);
 	cameraSide = glm::inverse(rotation) * glm::vec3(1, 0, 0);
 
-	return Core::createViewMatrixQuat(cameraPos, rotation);
+	glm::mat4 cameraTranslation;
+	cameraTranslation[3] = glm::vec4(-cameraPos, 1.0f);
+
+	return glm::mat4_cast(rotation) * cameraTranslation;
 }
 
 void drawObject(GLuint program, obj::Model * model, glm::mat4 modelMatrix, glm::vec3 color)
@@ -273,8 +281,8 @@ void renderShip()
 	/* glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0, -0.25f, 0)) * 
 		glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0, 1, 0)) * 
 		glm::scale(glm::vec3(0.25f)); */
-	glm::mat4 shipInitialTransformation = glm::translate(glm::vec3(0, -0.25f, 0)) * glm::rotate(glm::radians(180.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::vec3(0.25f)); // *************
-	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f) * glm::mat4_cast(glm::inverse(rotation)) * shipInitialTransformation; // *************
+	glm::mat4 shipInitialTransformation = glm::translate(glm::vec3(0, -0.25f, 0)) * glm::rotate(glm::radians(180.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::vec3(0.25f));
+	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f) * glm::mat4_cast(glm::inverse(rotation)) * shipInitialTransformation;
 
 	drawObjectTexture(programTex, &shipModel, shipModelMatrix, textureShip, textureShipN);
 }
