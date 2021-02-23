@@ -23,6 +23,7 @@ GLuint programSkybox;
 GLuint CubemapTexture;
 
 GLuint textureShip;
+GLuint textureStar;
 GLuint textureEarth;
 GLuint textureMoon;
 GLuint textureSun;
@@ -55,9 +56,19 @@ float frustumScale;
 float cameraAngle = 0;
 glm::vec3 cameraPos = glm::vec3(-25, 0, 0);
 glm::vec3 cameraDir;
+glm::vec3 cameraSide;
 glm::vec3 lightPos = glm::vec3(0, 0, 0);
+glm::vec3 lightPos2 = glm::vec3(60, 20, 40);
 
 glm::mat4 cameraMatrix, perspectiveMatrix;
+
+float lastX = -1;
+float lastY = -1;
+float xoffset, yoffset;
+bool firstMouse = true;
+glm::quat rotation = glm::quat(1, 0, 0, 0);
+glm::quat rotX = glm::normalize(glm::angleAxis(307 * 0.03f, glm::vec3(0, 1, 0)));
+glm::quat rotY = glm::normalize(glm::angleAxis(209 * 0.03f, glm::vec3(1, 0, 0)));
 
 float cubemapVertices[] = {       
 	-SIZE,  SIZE, -SIZE,
@@ -108,28 +119,70 @@ GLuint SkyboxVertexAttributes;
 
 void keyboard(unsigned char key, int x, int y)
 {
+
 	float angleSpeed = 0.1f;
 	float moveSpeed = 0.1f;
-	switch(key)
+	switch (key)
 	{
 	case 'z': cameraAngle -= angleSpeed; break;
 	case 'x': cameraAngle += angleSpeed; break;
 	case 'w': cameraPos += cameraDir * moveSpeed; break;
 	case 's': cameraPos -= cameraDir * moveSpeed; break;
-	case 'd': cameraPos += glm::cross(cameraDir, glm::vec3(0, 1, 0)) * moveSpeed; break;
-	case 'a': cameraPos -= glm::cross(cameraDir, glm::vec3(0, 1, 0)) * moveSpeed; break;
-	case 'e': cameraPos += glm::cross(cameraDir, glm::vec3(1, 0, 0)) * moveSpeed; break;
-	case 'q': cameraPos -= glm::cross(cameraDir, glm::vec3(1, 0, 0)) * moveSpeed; break;
+	case 'd': cameraPos += cameraSide * moveSpeed; break;
+	case 'a': cameraPos -= cameraSide * moveSpeed; break;
 	}
+}
+
+void mouse(int x, int y)
+{ 
+	if (firstMouse)
+	{
+		lastX = x;
+		lastY = y;
+		firstMouse = false;
+	}
+
+	xoffset = x - lastX;
+	yoffset = y - lastY;
+	lastX = x;
+	lastY = y;
+
+	float sens = 0.03f;
+	xoffset *= sens;
+	yoffset *= sens;
+
+
+	/*
+	int width = glutGet(GLUT_WINDOW_WIDTH);
+	int height = glutGet(GLUT_WINDOW_HEIGHT);
+
+	if (x < 10 || y < 10 || x >(width - 10) || y >(height - 10)) {
+		lastX = width / 2;
+		lastY = height / 2;
+		glutWarpPointer(lastX, lastY);
+	} 
+	*/
 }
 
 glm::mat4 createCameraMatrix()
 {
-	// Obliczanie kierunku patrzenia kamery (w plaszczyznie x-z) przy uzyciu zmiennej cameraAngle kontrolowanej przez klawisze.
-	cameraDir = glm::vec3(cosf(cameraAngle), 0.0f, sinf(cameraAngle));
-	glm::vec3 up = glm::vec3(0,1,0);
+	glm::quat quatX = glm::angleAxis(xoffset, glm::vec3(0, 1, 0));
+	glm::quat quatY = glm::angleAxis(yoffset, glm::vec3(1, 0, 0));
 
-	return Core::createViewMatrix(cameraPos, cameraDir, up);
+	xoffset = 0;
+	yoffset = 0;
+
+	rotX = glm::normalize(quatX * rotX);
+	rotY = glm::normalize(quatY * rotY);
+
+	rotation = glm::normalize(rotY * rotX);
+	cameraDir = glm::inverse(rotation) * glm::vec3(0, 0, -1);
+	cameraSide = glm::inverse(rotation) * glm::vec3(1, 0, 0);
+
+	glm::mat4 cameraTranslation;
+	cameraTranslation[3] = glm::vec4(-cameraPos, 1.0f);
+
+	return glm::mat4_cast(rotation) * cameraTranslation;
 }
 
 void drawObject(GLuint program, obj::Model * model, glm::mat4 modelMatrix, glm::vec3 color)
@@ -165,6 +218,7 @@ void renderPlanets()
 	glUseProgram(programTex);
 
 	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "lightPos2"), lightPos2.x, lightPos2.y, lightPos2.z);
 	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	glm::mat4 sun = glm::translate(glm::vec3(0, 0, 0));
@@ -220,16 +274,33 @@ void renderSun()
 	drawObjectTexture(programTexSun, &sphereModel, sunModelMatrix, textureSun, textureSunN);
 }
 
+void renderStar()
+{
+	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.f;
+
+	glUseProgram(programTexSun);
+
+	glUniform3f(glGetUniformLocation(programTexSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTexSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glm::mat4 starModelMatrix = glm::translate(lightPos2) * glm::scale(glm::vec3(3.0f)) * glm::rotate(glm::radians(time * 2.0f), glm::vec3(0, 1, 0));
+	drawObjectTexture(programTexSun, &sphereModel, starModelMatrix, textureStar, textureSunN);
+}
+
 void renderShip()
 {
 	glUseProgram(programTex);
 
 	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "lightPos2"), lightPos2.x, lightPos2.y, lightPos2.z);
 	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
-	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0, -0.25f, 0)) * 
+	/* glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0, -0.25f, 0)) * 
 		glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0, 1, 0)) * 
-		glm::scale(glm::vec3(0.25f));
+		glm::scale(glm::vec3(0.25f)); */
+	glm::mat4 shipInitialTransformation = glm::translate(glm::vec3(0, -0.25f, 0)) * glm::rotate(glm::radians(180.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::vec3(0.25f));
+	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f) * glm::mat4_cast(glm::inverse(rotation)) * shipInitialTransformation;
+
 	drawObjectTexture(programTex, &shipModel, shipModelMatrix, textureShip, textureShipN);
 }
 
@@ -265,6 +336,7 @@ void renderScene()
 	renderShip();
 	renderPlanets();
 	renderSun();
+	renderStar();
 	renderSkybox();
 
 	glUseProgram(0);
@@ -284,6 +356,7 @@ void init()
 	shipModel = obj::loadModelFromFile("models/spaceship.obj");
 
 	textureShip = Core::LoadTexture("textures/spaceship.png");
+	textureStar = Core::LoadTexture("textures/star.png");
 	textureEarth = Core::LoadTexture("textures/earth2.png");
 	textureMoon = Core::LoadTexture("textures/moon.png");
 	textureSun = Core::LoadTexture("textures/sun.png");
@@ -357,6 +430,9 @@ int main(int argc, char ** argv)
 
 	init();
 	glutKeyboardFunc(keyboard);
+	glutPassiveMotionFunc(mouse);
+	glutSetCursor(GLUT_CURSOR_NONE);
+
 	glutDisplayFunc(renderScene);
 	glutIdleFunc(idle);
 	glutReshapeFunc(onReshape);
