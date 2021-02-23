@@ -9,10 +9,12 @@ layout(location = 4) in vec3 vertexBitangent;
 uniform mat4 transformation;
 uniform mat4 modelMatrix;
 uniform vec3 lightPos;
+uniform vec3 lightPos2;
 uniform vec3 cameraPos;
 
 out vec2 interpTexCoord;
 out vec3 lightDirTS;
+out vec3 lightDir2TS;
 out vec3 viewDirTS;
 
 void main()
@@ -29,9 +31,11 @@ void main()
 	vec3 viewDir = normalize(cameraPos - vertPos);
 
 	vec3 fragPos = (modelMatrix * vec4(vertexPosition,1)).xyz;
-	vec3 lightDir = normalize(lightPos - fragPos);
+	vec3 lightDir = normalize(vertPos - lightPos);
+	vec3 lightDir2 = normalize(vertPos - lightPos2);
 
 	lightDirTS = TBN * lightDir;
+	lightDir2TS = TBN * lightDir2;
 	viewDirTS = TBN * viewDir;
 
 	interpTexCoord = vertexTexCoord;
