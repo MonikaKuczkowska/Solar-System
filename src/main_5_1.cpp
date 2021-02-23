@@ -23,6 +23,7 @@ GLuint programSkybox;
 GLuint CubemapTexture;
 
 GLuint textureShip;
+GLuint textureStar;
 GLuint textureEarth;
 GLuint textureMoon;
 GLuint textureSun;
@@ -57,6 +58,7 @@ glm::vec3 cameraPos = glm::vec3(-25, 0, 0);
 glm::vec3 cameraDir;
 glm::vec3 cameraSide;
 glm::vec3 lightPos = glm::vec3(0, 0, 0);
+glm::vec3 lightPos2 = glm::vec3(60, 20, 40);
 
 glm::mat4 cameraMatrix, perspectiveMatrix;
 
@@ -216,6 +218,7 @@ void renderPlanets()
 	glUseProgram(programTex);
 
 	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "lightPos2"), lightPos2.x, lightPos2.y, lightPos2.z);
 	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	glm::mat4 sun = glm::translate(glm::vec3(0, 0, 0));
@@ -271,11 +274,25 @@ void renderSun()
 	drawObjectTexture(programTexSun, &sphereModel, sunModelMatrix, textureSun, textureSunN);
 }
 
+void renderStar()
+{
+	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.f;
+
+	glUseProgram(programTexSun);
+
+	glUniform3f(glGetUniformLocation(programTexSun, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTexSun, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glm::mat4 starModelMatrix = glm::translate(lightPos2) * glm::scale(glm::vec3(3.0f)) * glm::rotate(glm::radians(time * 2.0f), glm::vec3(0, 1, 0));
+	drawObjectTexture(programTexSun, &sphereModel, starModelMatrix, textureStar, textureSunN);
+}
+
 void renderShip()
 {
 	glUseProgram(programTex);
 
 	glUniform3f(glGetUniformLocation(programTex, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(programTex, "lightPos2"), lightPos2.x, lightPos2.y, lightPos2.z);
 	glUniform3f(glGetUniformLocation(programTex, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	/* glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0, -0.25f, 0)) * 
@@ -319,6 +336,7 @@ void renderScene()
 	renderShip();
 	renderPlanets();
 	renderSun();
+	renderStar();
 	renderSkybox();
 
 	glUseProgram(0);
@@ -338,6 +356,7 @@ void init()
 	shipModel = obj::loadModelFromFile("models/spaceship.obj");
 
 	textureShip = Core::LoadTexture("textures/spaceship.png");
+	textureStar = Core::LoadTexture("textures/star.png");
 	textureEarth = Core::LoadTexture("textures/earth2.png");
 	textureMoon = Core::LoadTexture("textures/moon.png");
 	textureSun = Core::LoadTexture("textures/sun.png");
