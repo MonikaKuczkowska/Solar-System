@@ -4,6 +4,7 @@
 #include "ext.hpp"
 #include <iostream>
 #include <cmath>
+#include <ctime>
 
 #include "Texture.h"
 #include "Shader_Loader.h"
@@ -14,13 +15,18 @@
 
 #define SIZE 1
 
+std::vector <glm::vec3> spaceMenPositions;
+
 GLuint program;
 GLuint programSun;
 GLuint programTex;
 GLuint programTexSun;
 GLuint programSkybox;
+GLuint programColor;
 
 GLuint CubemapTexture;
+GLuint SpaceManTexture;
+GLuint SpaceManTextureN;
 
 GLuint textureShip;
 GLuint textureStar;
@@ -51,6 +57,7 @@ Core::Shader_Loader shaderLoader;
 
 obj::Model shipModel;
 obj::Model sphereModel;
+obj::Model spaceManModel;
 
 float frustumScale;
 float cameraAngle = 0;
@@ -304,6 +311,20 @@ void renderShip()
 	drawObjectTexture(programTex, &shipModel, shipModelMatrix, textureShip, textureShipN);
 }
 
+void renderSpaceMen(glm::vec3 position)
+{
+	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.f;
+	glUseProgram(program);
+
+	glUniform3f(glGetUniformLocation(program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform3f(glGetUniformLocation(program, "lightPos2"), lightPos2.x, lightPos2.y, lightPos2.z);
+	glUniform3f(glGetUniformLocation(program, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glm::mat4 spaceManModelMatrix = glm::translate(position) * glm::scale(glm::vec3(0.001f)) * glm::rotate(glm::radians(time * 2.0f), glm::vec3(0, 1, 0));
+
+	drawObject(program, &spaceManModel, spaceManModelMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
+}
+
 void renderSkybox()
 {
 	glUseProgram(programSkybox);
@@ -322,6 +343,14 @@ void renderSkybox()
 	glDepthMask(GL_TRUE);
 }
 
+glm::vec3 randomVec() {
+	int x, y, z;
+	x = rand() % 101 + (-50);
+	y = rand() % 101 + (-50);
+	z = rand() % 101 + (-50);	
+	return glm::vec3(x, y, z);
+}
+
 void renderScene()
 {
 	// Aktualizacja macierzy widoku i rzutowania. Macierze sa przechowywane w zmiennych globalnych, bo uzywa ich funkcja drawObject.
@@ -337,8 +366,17 @@ void renderScene()
 	renderPlanets();
 	renderSun();
 	renderStar();
+	for (int i = 0; i < spaceMenPositions.size(); i++)
+	{
+		renderSpaceMen(spaceMenPositions[i]);
+	}
 	renderSkybox();
-
+	for (int i = 0; i < spaceMenPositions.size(); i++)
+	{
+		if (glm::distance(cameraPos, spaceMenPositions[i]) < 0.5) {
+			spaceMenPositions.erase(spaceMenPositions.begin() + i);
+		}
+	}
 	glUseProgram(0);
 	glutSwapBuffers();
 }
@@ -354,6 +392,10 @@ void init()
 
 	sphereModel = obj::loadModelFromFile("models/sphere.obj");
 	shipModel = obj::loadModelFromFile("models/spaceship.obj");
+	spaceManModel = obj::loadModelFromFile("models/among us.obj");
+
+	SpaceManTexture = Core::LoadTexture("textures/Plastic_4K_Diffuse.png");
+	SpaceManTextureN = Core::LoadTexture("textures/Plastic_4K_Normal.png");
 
 	textureShip = Core::LoadTexture("textures/spaceship.png");
 	textureStar = Core::LoadTexture("textures/star.png");
@@ -421,6 +463,11 @@ void onReshape(int width, int height)
 
 int main(int argc, char ** argv)
 {
+	srand((int)time(0));
+	for (int i = 0; i < 10; i++)
+	{
+		spaceMenPositions.push_back(randomVec());
+	}
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(200, 200);
