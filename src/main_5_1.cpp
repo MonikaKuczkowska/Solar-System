@@ -469,7 +469,10 @@ int main(int argc, char ** argv)
 		spaceMenPositions.push_back(randomVec());
 	}
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	glutSetOption(GLUT_MULTISAMPLE, 8);
+	//glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
+	glEnable(GL_MULTISAMPLE);
 	glutInitWindowPosition(200, 200);
 	glutInitWindowSize(600, 600);
 	glutCreateWindow("Solar System");
