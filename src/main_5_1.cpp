@@ -232,38 +232,38 @@ void renderPlanets()
 	glm::vec3 axis = glm::vec3(0, 1, 0);
 
 	//Merkury
-	glm::mat4 mercuryModelMatrix = sun * glm::rotate(glm::radians(time * 47.9f), axis) * glm::translate(glm::vec3(6, 0, 0)) * glm::scale(glm::vec3(0.2f))
+	glm::mat4 mercuryModelMatrix = sun * glm::rotate(glm::radians(time * 23.9f), axis) * glm::translate(glm::vec3(6, 0, 0)) * glm::scale(glm::vec3(0.2f))
 		* glm::rotate(glm::radians(time * 1.0f), axis);
 	drawObjectTexture(programTex, &sphereModel, mercuryModelMatrix, textureMercury, textureMercuryN);
 	//Venus
-	glm::mat4 venusModelMatrix = sun * glm::rotate(glm::radians(time * 35.0f), axis) * glm::translate(glm::vec3(10, 0, 0)) * glm::scale(glm::vec3(0.6f))
+	glm::mat4 venusModelMatrix = sun * glm::rotate(glm::radians(time * 17.0f), axis) * glm::translate(glm::vec3(10, 0, 0)) * glm::scale(glm::vec3(0.6f))
 		* glm::rotate(glm::radians(time * 0.6f), axis);
 	drawObjectTexture(programTex, &sphereModel, venusModelMatrix, textureVenus, textureVenusN);
 	//Ziemia
-	glm::mat4 earthModelMatrix = sun * glm::rotate(glm::radians(time * 29.8f), axis) * glm::translate(glm::vec3(15, 0, 0)) * glm::scale(glm::vec3(0.6f))
+	glm::mat4 earthModelMatrix = sun * glm::rotate(glm::radians(time * 15.8f), axis) * glm::translate(glm::vec3(15, 0, 0)) * glm::scale(glm::vec3(0.6f))
 		* glm::rotate(glm::radians(time * 167.4f), axis);
 	drawObjectTexture(programTex, &sphereModel, earthModelMatrix, textureEarth, textureEarthN);
 	//Ksiê¿yc
 	glm::mat4 moonModelMatrix = earthModelMatrix * glm::rotate(glm::radians(time * 1.0f), axis) * glm::translate(glm::vec3(2, 0, 0)) * glm::scale(glm::vec3(0.2f));
 	drawObjectTexture(programTex, &sphereModel, moonModelMatrix, textureMoon, textureMoonN);
 	//Mars
-	glm::mat4 marsModelMatrix = sun * glm::rotate(glm::radians(time * 24.1f), axis) * glm::translate(glm::vec3(20, 0, 0)) * glm::scale(glm::vec3(0.3f))
+	glm::mat4 marsModelMatrix = sun * glm::rotate(glm::radians(time * 12.1f), axis) * glm::translate(glm::vec3(20, 0, 0)) * glm::scale(glm::vec3(0.3f))
 		* glm::rotate(glm::radians(time * 86.6f), axis);
 	drawObjectTexture(programTex, &sphereModel, marsModelMatrix, textureMars, textureMarsN);
 	//Jowisz
-	glm::mat4 jupiterhModelMatrix = sun * glm::rotate(glm::radians(time * 13.1f), axis) * glm::translate(glm::vec3(30, 0, 0)) * glm::scale(glm::vec3(3.5f))
+	glm::mat4 jupiterhModelMatrix = sun * glm::rotate(glm::radians(time * 6.1f), axis) * glm::translate(glm::vec3(30, 0, 0)) * glm::scale(glm::vec3(3.5f))
 		* glm::rotate(glm::radians(time * 455.8f / 4), axis);
 	drawObjectTexture(programTex, &sphereModel, jupiterhModelMatrix, textureJupiter, textureJupiterN);
 	//Saturn
-	glm::mat4 saturnModelMatrix = sun * glm::rotate(glm::radians(time * 9.7f), axis) * glm::translate(glm::vec3(40, 0, 0)) * glm::scale(glm::vec3(3.0f))
+	glm::mat4 saturnModelMatrix = sun * glm::rotate(glm::radians(time * 4.7f), axis) * glm::translate(glm::vec3(40, 0, 0)) * glm::scale(glm::vec3(3.0f))
 		* glm::rotate(glm::radians(time * 368.4f), axis);
 	drawObjectTexture(programTex, &sphereModel, saturnModelMatrix, textureSaturn, textureSaturnN);
 	//Uran
-	glm::mat4 uranusModelMatrix = sun * glm::rotate(glm::radians(time * 6.8f), axis) * glm::translate(glm::vec3(50, 0, 0)) * glm::scale(glm::vec3(1.5f))
+	glm::mat4 uranusModelMatrix = sun * glm::rotate(glm::radians(time * 3.8f), axis) * glm::translate(glm::vec3(50, 0, 0)) * glm::scale(glm::vec3(1.5f))
 		* glm::rotate(glm::radians(time * 147.9f), axis);
 	drawObjectTexture(programTex, &sphereModel, uranusModelMatrix, textureUranus, textureUranusN);
 	//Neptun
-	glm::mat4 neptuneModelMatrix = sun * glm::rotate(glm::radians(time * 5.4f), axis) * glm::translate(glm::vec3(70, 0, 0)) * glm::scale(glm::vec3(1.0f))
+	glm::mat4 neptuneModelMatrix = sun * glm::rotate(glm::radians(time * 2.4f), axis) * glm::translate(glm::vec3(70, 0, 0)) * glm::scale(glm::vec3(1.0f))
 		* glm::rotate(glm::radians(time * 97.1f), axis);
 	drawObjectTexture(programTex, &sphereModel, neptuneModelMatrix, textureNeptune, textureNeptuneN);
 }
@@ -345,9 +345,9 @@ void renderSkybox()
 
 glm::vec3 randomVec() {
 	int x, y, z;
-	x = rand() % 101 + (-50);
-	y = rand() % 101 + (-50);
-	z = rand() % 101 + (-50);	
+	x = rand() % 81 + (-40);
+	y = rand() % 81 + (-40);
+	z = rand() % 81 + (-40);	
 	return glm::vec3(x, y, z);
 }
 
@@ -373,7 +373,7 @@ void renderScene()
 	renderSkybox();
 	for (int i = 0; i < spaceMenPositions.size(); i++)
 	{
-		if (glm::distance(cameraPos, spaceMenPositions[i]) < 0.5) {
+		if (glm::distance(cameraPos, spaceMenPositions[i]) < 1.0) {
 			spaceMenPositions.erase(spaceMenPositions.begin() + i);
 		}
 	}
